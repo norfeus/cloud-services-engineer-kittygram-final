@@ -1,0 +1,53 @@
+# Версия docker-compose:
+version: '3'
+
+
+# Перечень контейнеров:
+services:
+  # Имя и описание первого контейнера; имя выбирает разработчик. 
+  # Это контейнер с базой данных:
+  postgres:
+    # Из какого образа запустить контейнер:
+    image: postgres:13.10
+    # Файл (или список файлов) с переменными окружения:
+    env_file: .env
+    # Какой volume подключить для этого контейнера:
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+  # Имя и описание контейнера с бэкендом:
+  backend:
+    # Из какого Dockerfile собирать образ для этого контейнера:
+    image: norff/kittygram_backend
+    environment:
+      - DB_HOST=postgres
+    env_file: .env
+    # Какие контейнеры нужно запустить до старта этого контейнера:
+    depends_on:
+      - postgres
+    volumes:
+      - static:/backend_static
+      - media:/app/media
+
+  # Имя третьего контейнера. Это контейнер с фронтендом:
+  frontend:
+    image: norff/kittygram_frontend
+    env_file: .env
+    command: cp -r /app/build/. /staticfiles/
+    volumes:
+      - static:/staticfiles
+
+  gateway:
+    image: norff/kittygram_gateway
+    env_file: .env
+    depends_on:
+      - frontend
+    volumes:
+      - static:/staticfiles/
+      - media:/app/media
+    ports:
+      - 801:80
+# Перечень volume:
+volumes:
+  pg_data:
+  static:
+  media:
