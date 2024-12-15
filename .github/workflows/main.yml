@@ -201,13 +201,6 @@ jobs:
         run: |  
           coverage report -m
   
-jobs:  
-  build:  
-    
-    strategy:  
-      matrix:  
-        python-version: ["3.10"]
-
   send_message:
     runs-on: ubuntu-latest
     needs: auto-test
