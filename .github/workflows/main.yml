@@ -173,7 +173,7 @@ jobs:
             sudo docker compose -f docker-compose.yml down
             sudo docker compose -f docker-compose.yml up -d
             sudo docker compose -f docker-compose.yml exec backend python manage.py migrate
-            sudo docker compose -f docker-compose.yml exec backend python manage.py collectstatic
+            sudo docker compose -f docker-compose.yml exec backend python manage.py collectstatic --no-input
 
   auto-test:
     name: Run Unit Test via Pytest  
@@ -205,4 +205,4 @@ jobs:
       with:
         to: ${{ secrets.TELEGRAM_TO }}
         token: ${{ secrets.TELEGRAM_TOKEN }}
-        message: deploy successful!
+        message: deploy successful! Author of commit:${{ github.actor }}. Commit message: ${{ github.event.commits[0].message }}, link: https://github.com/${{ github.repository }}/commit/${{github.sha}}.
