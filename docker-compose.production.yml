@@ -35,7 +35,7 @@ services:
       - static:/staticfiles/
       - media:/media
     ports:
-      - 801:80
+      - 80:80
 
 volumes:
   pg_data:
