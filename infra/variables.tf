@@ -65,7 +65,7 @@ variable "nat" {
   default     = true
 }
 
-variable "ssh_key" {
+variable "ssh_key_pub" {
   description = "SSH Public Key"
   type        = string
 }
