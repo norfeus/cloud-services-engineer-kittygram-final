@@ -23,7 +23,7 @@ services:
     env_file: .env
     command: cp -r /app/build/. /staticfiles/
     volumes:
-      - static:staticfiles/
+      - static:/staticfiles/
     depends_on:
       - backend
 
