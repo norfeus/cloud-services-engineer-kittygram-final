@@ -7,7 +7,7 @@ users:
     sudo: ALL=(ALL) NOPASSWD:ALL
     shell: /bin/bash
     ssh-authorized-keys:
-      - "${SSH_KEY_PUB}"  # Переменная, которая будет заменена значением SSH-ключа из Terraform
+      - "${ssh_key_pub}"  # Переменная, которая будет заменена значением SSH-ключа из Terraform
 
 # Установка Docker и Docker Compose
 packages:
