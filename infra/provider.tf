@@ -7,7 +7,9 @@ terraform {
   required_version = ">= 0.13"
 
   backend "s3" {
-    endpoint                    = "https://storage.yandexcloud.net"
+    endpoints = {
+      s3 = "https://storage.yandexcloud.net"
+    }
     bucket                      = "kittygram-tfstate-bucket"
     region                      = "ru-central1"
     key                         = "tf-state.tfstate"
