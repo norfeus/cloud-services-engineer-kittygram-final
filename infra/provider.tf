@@ -8,7 +8,7 @@ terraform {
 
   backend "s3" {
     endpoint                    = "https://storage.yandexcloud.net"
-    bucket                      = "<Укажите здесь свой бакет, предварительно созданный в облаке>"
+    bucket                      = "kittygram-tfstate-bucket"
     region                      = "ru-central1"
     key                         = "tf-state.tfstate"
 
