@@ -100,8 +100,15 @@ jobs:
           to: ${{ secrets.TELEGRAM_TO }}
           token: ${{ secrets.TELEGRAM_TOKEN }}
           message: |
-            deploy VM successful!
-            IP: ${{ env.VM_ADDRESS }}
+            ✅ *Deploy VM successful!* 🎉
+
+            🖥️ *VM IP Address:* 
+            `${{ env.VM_ADDRESS }}`
+
+            🔗 *Repository:* 
+            https://github.com/${{ github.repository }}
+
+            👤 *Triggered by:* `${{ github.actor }}`
 
       # Step 9: Run Destroy
       - name: Terraform Destroy
@@ -121,7 +128,14 @@ jobs:
           to: ${{ secrets.TELEGRAM_TO }}
           token: ${{ secrets.TELEGRAM_TOKEN }}
           message: |
-            destroy VM successful!
+            🔥 *Destroy VM successful!* ✅
+
+            🗑️ *Action:* VM was successfully destroyed.
+
+            🔗 *Repository:* 
+            https://github.com/${{ github.repository }}
+
+            👤 *Triggered by:* `${{ github.actor }}`
 
       # Step 10: Run Deploy Workflow (optional)
       - name: Run Deploy Workflow
