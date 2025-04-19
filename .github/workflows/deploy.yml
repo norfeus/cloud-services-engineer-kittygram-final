@@ -130,8 +130,10 @@ jobs:
       - build_gateway_and_push_to_docker_hub
     if: github.ref == 'refs/heads/main'
     steps:
+
       - name: Checkout repo
         uses: actions/checkout@v3
+
       - name: Copy docker-compose.yml via ssh
         uses: appleboy/scp-action@master
         with:
@@ -141,6 +143,19 @@ jobs:
           #passphrase: ${{ secrets.SSH_PASSPHRASE }}
           source: "docker-compose.yml"
           target: "Kittygram"
+
+      - name: Create .env file
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USER }}
+          key: ${{ secrets.SSH_KEY }}
+          script: |
+            echo "POSTGRES_DB=${{ secrets.POSTGRES_DB }}" > .env
+            echo "POSTGRES_USER=${{ secrets.POSTGRES_USER }}" >> .env
+            echo "POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}" >> .env
+            chmod 600 .env
+
       - name: Executing remote ssh commands to deploy
         uses: appleboy/ssh-action@master
         with:
