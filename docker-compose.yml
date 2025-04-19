@@ -15,7 +15,7 @@ services:
     depends_on:
       - postgres
     volumes:
-      - static:/app/collected_static
+      - static:/collected_static
       - media:/app/media
 
   frontend:
