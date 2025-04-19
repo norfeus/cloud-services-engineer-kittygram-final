@@ -205,6 +205,7 @@ jobs:
       with:
         to: ${{ secrets.TELEGRAM_TO }}
         token: ${{ secrets.TELEGRAM_TOKEN }}
+        parse_mode: MarkdownV2
         message: |
           ✅ *Deploy successful!*
 
