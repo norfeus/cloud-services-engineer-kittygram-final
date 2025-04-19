@@ -1,0 +1,12 @@
+vpc_name = "kittygram-network"
+vm_1_name = "kittygram-vm"
+zone = "ru-central1-a"
+platform_id = "standard-v1"
+cores = 2
+memory = 2
+disk_type = "network-ssd"
+disk_size = 20
+nat = true
+ssh_key = "ssh-rsa AAAAB3NzaC1yc2E... your-public-key"
+cloud_id = "your-cloud-id"
+folder_id = "your-folder-id"

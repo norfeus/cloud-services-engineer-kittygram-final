@@ -1,0 +1,51 @@
+name: Terraform
+
+on:
+  workflow_dispatch:
+    inputs:
+      action:
+        description: 'Select the Terraform action'
+        required: true
+        default: 'plan'
+        type: choice
+        options:
+          - plan
+          - apply
+          - destroy
+
+jobs:
+  terraform:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Configure AWS CLI for Yandex Object Storage
+        run: |
+          mkdir -p ~/.aws
+          echo "[default]" > ~/.aws/credentials
+          echo "aws_access_key_id=${{ secrets.YC_ACCESS_KEY }}" >> ~/.aws/credentials
+          echo "aws_secret_access_key=${{ secrets.YC_SECRET_KEY }}" >> ~/.aws/credentials
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+
+      - name: Terraform Init
+        working-directory: ./infra
+        run: terraform init
+
+      - name: Terraform Plan
+        working-directory: ./infra
+        if: ${{ github.event.inputs.action == 'plan' }}
+        run: terraform plan
+
+      - name: Terraform Apply
+        working-directory: ./infra
+        if: ${{ github.event.inputs.action == 'apply' }}
+        run: terraform apply -auto-approve
+
+      - name: Terraform Destroy
+        working-directory: ./infra
+        if: ${{ github.event.inputs.action == 'destroy' }}
+        run: terraform destroy -auto-approve
