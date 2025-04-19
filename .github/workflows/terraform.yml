@@ -100,7 +100,7 @@ jobs:
         env:
           TF_VAR_cloud_id: ${{ secrets.YC_CLOUD_ID }}
           TF_VAR_folder_id: ${{ secrets.YC_FOLDER_ID }}
-          #TF_VAR_ssh_key: ${{ secrets.SSH_KEY_PUB }}
+          TF_VAR_ssh_key_pub: ${{ secrets.SSH_KEY_PUB }}
 
       # Step 10: Run Deploy Workflow (optional)
       - name: Run Deploy Workflow
