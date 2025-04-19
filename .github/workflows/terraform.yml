@@ -72,7 +72,13 @@ jobs:
         working-directory: ./infra
         if: ${{ github.event.inputs.action == 'apply' }}
         run: |
-          echo "VM_ADDRESS=$(terraform output -raw external_ip)" >> $GITHUB_ENV
+          EXTERNAL_IP=$(terraform output -raw external_ip)
+          if [ -n "$EXTERNAL_IP" ]; then
+            echo "VM_ADDRESS=$EXTERNAL_IP" >> $GITHUB_ENV
+          else
+            echo "Error: External IP is empty or not found"
+            exit 1
+          fi
 
       # Step 8: Notify on success (optional)
       - name: Notify on success
