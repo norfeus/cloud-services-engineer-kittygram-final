@@ -122,7 +122,6 @@ jobs:
           token: ${{ secrets.TELEGRAM_TOKEN }}
           message: |
             destroy VM successful!
-            IP: ${{ env.VM_ADDRESS }}
 
       # Step 10: Run Deploy Workflow (optional)
       - name: Run Deploy Workflow

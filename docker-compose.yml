@@ -1,5 +1,3 @@
-version: '3'
-
 services:
   postgres:
     image: postgres:13.10
@@ -22,8 +20,6 @@ services:
     command: cp -r /app/build/. /staticfiles/
     volumes:
       - static:/staticfiles/
-    depends_on:
-      - backend
 
   gateway:
     image: norff/kittygram_gateway
