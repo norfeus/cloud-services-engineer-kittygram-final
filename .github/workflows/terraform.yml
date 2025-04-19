@@ -8,6 +8,7 @@ on:
         description: 'Select the Terraform action'
         required: true
         default: 'plan'
+        type: choice
         options:
           - plan
           - apply
@@ -16,122 +17,66 @@ on:
 permissions:
   contents: write
 
-
 jobs:
-  terraform_plan:
+  terraform:
     runs-on: ubuntu-latest
-    if: ${{ github.event.inputs.action == 'plan' }}
+
     steps:
+      # Step 1: Checkout code
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v2
-        with:
-          terraform_version: 1.8.3
-
-      - name: Set up Yandex Cloud service account key
-        working-directory: ./infra
-        run: |
-          echo "${{ secrets.YC_KEY_JSON }}" | base64 -d > ./authorized_key.json
-
-      - name: Initialize Terraform
-        working-directory: ./infra
-        run: terraform init -backend-config="access_key=$ACCESS_KEY" -backend-config="secret_key=$SECRET_KEY"
-        env:
-          ACCESS_KEY: ${{ secrets.YC_ACCESS_KEY }}
-          SECRET_KEY: ${{ secrets.YC_SECRET_KEY }}
-
-      - name: Run Plan
-        working-directory: ./infra
-        run: terraform plan
-        env:
-          ACCESS_KEY: ${{ secrets.YC_ACCESS_KEY }}
-          SECRET_KEY: ${{ secrets.YC_SECRET_KEY }}
-          TF_VAR_cloud_id: ${{ secrets.YC_CLOUD_ID }}
-          TF_VAR_folder_id: ${{ secrets.YC_FOLDER_ID }}
-          TF_VAR_username: ${{ vars.VM_USER}}
-          TF_VAR_ssh_key: ${{ secrets.VM_PUB_SSH_KEY}}
-
-  terraform_destroy:
-    runs-on: ubuntu-latest
-    if: ${{ github.event.inputs.action == 'destroy' }}
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
-
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v2
-        with:
-          terraform_version: 1.8.3
-
-      - name: Set up Yandex Cloud service account key
-        working-directory: ./infra
-        run: |
-          echo "${{ secrets.YC_KEY_JSON }}" | base64 -d > ./authorized_key.json
-
-      - name: Initialize Terraform
-        working-directory: ./infra
-        run: terraform init -backend-config="access_key=$ACCESS_KEY" -backend-config="secret_key=$SECRET_KEY"
-        env:
-          ACCESS_KEY: ${{ secrets.YC_ACCESS_KEY }}
-          SECRET_KEY: ${{ secrets.YC_SECRET_KEY }}
-
-      - name: Run Destroy
-        working-directory: ./infra
-        run: terraform destroy -auto-approve
-        env:
-          ACCESS_KEY: ${{ secrets.YC_ACCESS_KEY }}
-          SECRET_KEY: ${{ secrets.YC_SECRET_KEY }}
-          TF_VAR_cloud_id: ${{ secrets.YC_CLOUD_ID }}
-          TF_VAR_folder_id: ${{ secrets.YC_FOLDER_ID }}
-          TF_VAR_username: ${{ vars.VM_USER}}
-          TF_VAR_ssh_key: ${{ secrets.VM_PUB_SSH_KEY}}
-
-  terraform_apply:
-    runs-on: ubuntu-latest
-    if: ${{ github.event.inputs.action == 'apply' }}
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
-
+      # Step 2: Setup Terraform
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v2
         with:
           terraform_version: 1.8.3
           terraform_wrapper: false
 
+      # Step 3: Set up Yandex Cloud service account key
       - name: Set up Yandex Cloud service account key
         working-directory: ./infra
         run: |
           echo "${{ secrets.YC_KEY_JSON }}" | base64 -d > ./authorized_key.json
 
+      # Step 4: Initialize Terraform
       - name: Initialize Terraform
         working-directory: ./infra
-        run: terraform init -backend-config="access_key=$ACCESS_KEY" -backend-config="secret_key=$SECRET_KEY"
+        run: terraform init -backend-config="access_key=${{ secrets.ACCESS_KEY }}" -backend-config="secret_key=${{ secrets.SECRET_KEY }}"
         env:
-          ACCESS_KEY: ${{ secrets.YC_ACCESS_KEY }}
-          SECRET_KEY: ${{ secrets.YC_SECRET_KEY }}
+          ACCESS_KEY: ${{ secrets.ACCESS_KEY }}
+          SECRET_KEY: ${{ secrets.SECRET_KEY }}
 
-      - name: Run Apply
+      # Step 5: Run Terraform Plan
+      - name: Terraform Plan
         working-directory: ./infra
+        if: ${{ github.event.inputs.action == 'plan' }}
+        run: terraform plan
         env:
-          ACCESS_KEY: ${{ secrets.YC_ACCESS_KEY }}
-          SECRET_KEY: ${{ secrets.YC_SECRET_KEY }}
           TF_VAR_cloud_id: ${{ secrets.YC_CLOUD_ID }}
           TF_VAR_folder_id: ${{ secrets.YC_FOLDER_ID }}
-          TF_VAR_username: ${{ vars.VM_USER}}
-          TF_VAR_ssh_key: ${{ secrets.VM_PUB_SSH_KEY}}
-        run: |
-          terraform apply -auto-approve
+          TF_VAR_ssh_key: ${{ secrets.SSH_KEY }}
 
+      # Step 6: Run Terraform Apply
+      - name: Terraform Apply
+        working-directory: ./infra
+        if: ${{ github.event.inputs.action == 'apply' }}
+        run: terraform apply -auto-approve
+        env:
+          TF_VAR_cloud_id: ${{ secrets.YC_CLOUD_ID }}
+          TF_VAR_folder_id: ${{ secrets.YC_FOLDER_ID }}
+          TF_VAR_ssh_key: ${{ secrets.SSH_KEY }}
+
+      # Step 7: Save External IP
       - name: Save External IP
         working-directory: ./infra
+        if: ${{ github.event.inputs.action == 'apply' }}
         run: |
           echo "VM_ADDRESS=$(terraform output -raw external_ip)" >> $GITHUB_ENV
 
+      # Step 8: Notify on success (optional)
       - name: Notify on success
-        if: success()
+        if: success() && github.event.inputs.action == 'apply'
         uses: appleboy/telegram-action@master
         with:
           to: ${{ secrets.TELEGRAM_TO }}
@@ -140,7 +85,19 @@ jobs:
             🟢 *Created VM for Kittygram completed successfully!* 🎉
             *Server:* ${{ env.VM_ADDRESS }}
 
+      # Step 9: Run Destroy
+      - name: Terraform Destroy
+        working-directory: ./infra
+        if: ${{ github.event.inputs.action == 'destroy' }}
+        run: terraform destroy -auto-approve
+        env:
+          TF_VAR_cloud_id: ${{ secrets.YC_CLOUD_ID }}
+          TF_VAR_folder_id: ${{ secrets.YC_FOLDER_ID }}
+          TF_VAR_ssh_key: ${{ secrets.SSH_KEY }}
+
+      # Step 10: Run Deploy Workflow (optional)
       - name: Run Deploy Workflow
+        if: success() && github.event.inputs.action == 'apply'
         run: |
           curl -X POST \
           -H "Accept: application/vnd.github.everest-preview+json" \
