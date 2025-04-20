@@ -85,18 +85,18 @@ jobs:
         with:
           to: ${{ secrets.TELEGRAM_TO }}
           token: ${{ secrets.TELEGRAM_TOKEN }}
-          parse_mode: HTML
+          format: markdown
           message: |
-            <b>✅ Deploy VM successful!</b> 🎉
+            *✅ Deploy VM successful!*
 
-            <b>🖥️ VM IP Address:</b> 
-            <code>${{ env.VM_ADDRESS }}</code>
+            *🖥️ VM IP Address:*
+            `${{ env.VM_ADDRESS }}`
 
-            <b>🔗 Repository:</b> 
-            <a href="https://github.com/${{ github.repository }}">${{ github.repository }}</a>
+            *🔗 Repository:*
+            [Commit](https://github.com/${{ github.repository }}/commit/${{ github.repository }})
 
-            <b>👤 Triggered by:</b> 
-            <code>${{ github.actor }}</code>
+            *👤 Triggered by:*
+            `${{ github.actor }}`
 
       - name: Terraform Destroy
         working-directory: ./infra
@@ -113,18 +113,16 @@ jobs:
         with:
           to: ${{ secrets.TELEGRAM_TO }}
           token: ${{ secrets.TELEGRAM_TOKEN }}
-          parse_mode: HTML
+          format: markdown
           message: |
-            <b>🔥 Destroy VM successful! ✅</b>
+            *🔥 Destroy VM successful!*
 
-            <b>🗑️ Action:</b> VM was successfully destroyed.
+            *🗑️ Action:* VM was successfully destroyed.
+            
+            *📅 Timestamp:* ${{ format('yyyy-MM-dd HH:mm:ss', github.run_started_at) }}
 
-            <b>📅 Timestamp:</b> ${{ format('yyyy-MM-dd HH:mm:ss', github.run_started_at) }}
-
-            <b>🔗 Repository:</b> 
-            <a href="https://github.com/${{ github.repository }}">${{ github.repository }}</a>
-
-            <b>👤 Triggered by:</b> ${{ github.actor }}
+            *🔗 Repository:* 
+            [Commit](https://github.com/${{ github.repository }}/commit/${{ github.repository }})
           
 
       - name: Save External IP

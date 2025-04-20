@@ -140,7 +140,6 @@ jobs:
           host: ${{ secrets.HOST }}
           username: ${{ secrets.USER }}
           key: ${{ secrets.SSH_KEY }}
-          #passphrase: ${{ secrets.SSH_PASSPHRASE }}
           source: "docker-compose.yml"
           target: "Kittygram"
 
@@ -165,7 +164,6 @@ jobs:
           host: ${{ secrets.HOST }}
           username: ${{ secrets.USER }}
           key: ${{ secrets.SSH_KEY }}
-          #passphrase: ${{ secrets.SSH_PASSPHRASE }}
           script: |
             cd Kittygram
             sudo docker compose -f docker-compose.yml pull
@@ -173,7 +171,6 @@ jobs:
             sudo docker compose -f docker-compose.yml up -d
             sudo docker compose -f docker-compose.yml exec backend python manage.py migrate
             sudo docker compose -f docker-compose.yml exec backend python manage.py collectstatic --noinput
-          #  sudo docker compose -f docker-compose.yml exec backend cp -r /app/collected_static/. /backend_static/static/
 
   auto-test:
     name: Run Unit Test via Pytest  
@@ -205,15 +202,15 @@ jobs:
         with:
           to: ${{ secrets.TELEGRAM_TO }}
           token: ${{ secrets.TELEGRAM_TOKEN }}
-          parse_mode: HTML
+          format: markdown
           message: |
-            <b>✅ Deploy successful!</b> 🎉
+            *✅ Deploy successful\!*
 
-            <b>👤 Author:</b> 
-            <code>${{ github.actor }}</code>
+            *👤 Author:* 
+            `${{ github.actor }}`
 
-            <b>📝 Commit message:</b> 
-            <code>${{ github.event.commits[0].message }}</code>
+            *📝 Commit message:* 
+            `${{ github.event.commits[0].message }}`
 
-            <b>🔗 Link to commit:</b> 
-            <a href="https://github.com/${{ github.repository }}/commit/${{ github.sha }}">Commit</a>
+            *🔗 Link to commit:* 
+            [Commit](https://github.com/${{ github.repository }}/commit/${{ github.sha }})
