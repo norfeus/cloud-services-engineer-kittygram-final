@@ -204,7 +204,7 @@ jobs:
           token: ${{ secrets.TELEGRAM_TOKEN }}
           format: markdown
           message: |
-            *✅ Deploy successful\!*
+            *✅ Deploy successful!*
 
             *👤 Author:* 
             `${{ github.actor }}`
