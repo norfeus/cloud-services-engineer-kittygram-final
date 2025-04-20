@@ -130,32 +130,56 @@ jobs:
       - build_gateway_and_push_to_docker_hub
     if: github.ref == 'refs/heads/main'
     steps:
+
       - name: Checkout repo
         uses: actions/checkout@v3
+
       - name: Copy docker-compose.yml via ssh
         uses: appleboy/scp-action@master
         with:
           host: ${{ secrets.HOST }}
           username: ${{ secrets.USER }}
           key: ${{ secrets.SSH_KEY }}
-          #passphrase: ${{ secrets.SSH_PASSPHRASE }}
           source: "docker-compose.yml"
           target: "Kittygram"
+
+      - name: Create .env file
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USER }}
+          key: ${{ secrets.SSH_KEY }}
+          script: |
+            echo "POSTGRES_DB=${{ secrets.POSTGRES_DB }}" > ~/Kittygram/.env
+            echo "POSTGRES_USER=${{ secrets.POSTGRES_USER }}" >> ~/Kittygram/.env
+            echo "POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}" >> ~/Kittygram/.env
+            echo "DB_HOST=postgres" >> ~/Kittygram/.env
+            echo "ALLOWED_HOSTS='*'" >> ~/Kittygram/.env
+            echo "SECRET_KEY=${{ secrets.SECRET_KEY }}" >> ~/Kittygram/.env
+            chmod 600 ~/Kittygram/.env
+
       - name: Executing remote ssh commands to deploy
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.HOST }}
           username: ${{ secrets.USER }}
           key: ${{ secrets.SSH_KEY }}
-          #passphrase: ${{ secrets.SSH_PASSPHRASE }}
           script: |
             cd Kittygram
             sudo docker compose -f docker-compose.yml pull
             sudo docker compose -f docker-compose.yml down
             sudo docker compose -f docker-compose.yml up -d
+
+            # Wait for PostgreSQL to become available
+            echo "Waiting for PostgreSQL to be ready..."
+            until sudo docker compose -f docker-compose.yml exec -T postgres pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}; do
+              echo "PostgreSQL is not ready yet. Retrying in 5 seconds..."
+              sleep 5
+            done
+            echo "PostgreSQL is ready!"
+
             sudo docker compose -f docker-compose.yml exec backend python manage.py migrate
             sudo docker compose -f docker-compose.yml exec backend python manage.py collectstatic --noinput
-            sudo docker compose -f docker-compose.yml exec backend cp -r /app/collected_static/. /app/collected_static/static/
 
   auto-test:
     name: Run Unit Test via Pytest  
@@ -182,9 +206,20 @@ jobs:
     runs-on: ubuntu-latest
     needs: auto-test
     steps:
-    - name: Send message
-      uses: appleboy/telegram-action@master
-      with:
-        to: ${{ secrets.TELEGRAM_TO }}
-        token: ${{ secrets.TELEGRAM_TOKEN }}
-        message: "deploy successful! Author of commit:${{ github.actor }}. Commit message: ${{ github.event.commits[0].message }}, link: https://github.com/${{ github.repository }}/commit/${{github.sha}}."
+      - name: Send message
+        uses: appleboy/telegram-action@master
+        with:
+          to: ${{ secrets.TELEGRAM_TO }}
+          token: ${{ secrets.TELEGRAM_TOKEN }}
+          format: markdown
+          message: |
+            *✅ Deploy successful!*
+
+            *👤 Author:* 
+            `${{ github.actor }}`
+
+            *📝 Commit message:* 
+            `${{ github.event.commits[0].message }}`
+
+            *🔗 Link to commit:* 
+            [Commit](https://github.com/${{ github.repository }}/commit/${{ github.sha }})

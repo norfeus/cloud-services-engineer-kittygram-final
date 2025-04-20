@@ -4,6 +4,12 @@ services:
     env_file: .env
     volumes:
       - pg_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
       
   backend:
     image: norff/kittygram_backend
@@ -11,7 +17,7 @@ services:
     depends_on:
       - postgres
     volumes:
-      - static:/collected_static
+      - static:/backend_static
       - media:/app/media
 
   frontend:
