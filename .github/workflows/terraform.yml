@@ -117,10 +117,9 @@ jobs:
           message: |
             *🔥 Destroy VM successful!*
 
-            *🗑️ Action:* VM was successfully destroyed.
+            *🗑️ Action:* 
+            VM was successfully destroyed.
             
-            *📅 Timestamp:* ${{ format('yyyy-MM-dd HH:mm:ss', github.run_started_at) }}
-
             *🔗 Repository:* 
             [Commit](https://github.com/${{ github.repository }}/commit/${{ github.repository }})
           

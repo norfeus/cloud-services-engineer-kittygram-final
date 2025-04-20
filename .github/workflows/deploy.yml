@@ -169,8 +169,10 @@ jobs:
             sudo docker compose -f docker-compose.yml pull
             sudo docker compose -f docker-compose.yml down
             sudo docker compose -f docker-compose.yml up -d
+
+            # Wait for PostgreSQL to become available
             echo "Waiting for PostgreSQL to be ready..."
-            until sudo docker compose -f docker-compose.yml exec -T backend python manage.py dbshell -- --command="SELECT 1" > /dev/null 2>&1; do
+            until sudo docker compose -f docker-compose.yml exec -T postgres pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}; do
               echo "PostgreSQL is not ready yet. Retrying in 5 seconds..."
               sleep 5
             done
